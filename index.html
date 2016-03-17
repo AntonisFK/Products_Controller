@@ -11,55 +11,75 @@
     myAppModule.factory("productFactory", function(){
       var factory = {};
       var products = [];
+      var id = 0; 
+      //iniT products
       factory.findProducts = function(callback){
         callback(products)
+      }
+
+      //add product 
+      factory.addProduct = function(newProduct, callback){
+        newProduct.qty = 50; 
+        newProduct.id = id; 
+        id ++;
+        products.push(newProduct);
+        callback(products);
+      }
+
+      factory.removeProduct = function(destroyProduct, callback){
+        var index = products.indexOf(destroyProduct);
+        products.splice(index, 1);
+        callback(products);      
+      }
+
+      factory.buyProduct = function(boughtProduct, callback){
+        console.log("item bought")
+        if(boughtProduct.qty < 1){
+          boughtProduct.qty = "Sold out";
+        }
+        if(typeof boughtProduct.qty !== 'string'){
+          boughtProduct.qty --
+        }
       }
       return factory;
     })
     //create User controller 
     myAppModule.controller("productsController", function($scope, productFactory){
-      $scope.products = [];
+      //init products will equal a empty array 
       productFactory.findProducts(function(products){
         $scope.products = products; 
       })
-      $scope.id = 0;
-
+      
       $scope.addProduct = function(){
-       $scope.newProduct.id = $scope.id; 
-       $scope.newProduct.qty = 50; 
-       $scope.products.push($scope.newProduct);
-       $scope.id ++
+        productFactory.addProduct($scope.newProduct, function(products){
+          $scope.products = products; 
+          console.log(products)
+        })
        $scope.newProduct = null;
 
       };
 
-      $scope.removeProduct = function(product){ 
-        var index = $scope.products.indexOf(product)
-        $scope.products.splice(index , 1 )
-      }
+      $scope.removeProduct = function(destroyProduct){ 
+        productFactory.removeProduct(destroyProduct, function(products){
+          $scope.products = products;  
+        })
+      };
 
     })
 
     myAppModule.controller("ordersController", function($scope, productFactory){
-      $scope.products = [];
-      console.log("hi")
+    
+
       productFactory.findProducts(function(products){
         $scope.products = products;
-        console.log($scope.products);
-        console.log("yo")
       })
 
-      $scope.buyProduct = function(product){
-        if(typeof product.qty =='string'){
+      $scope.buyProduct = function(boughtProduct){
+       productFactory.buyProduct(boughtProduct, function(products){
+        $scope.products = products;
+        console.log($scope.products);
 
-        }
-       else{
-         product.qty -- ;
-       }
-        if(product.qty < 0 ){
-          product.qty = "sold out";
-        }
-
+       })
       }
 
     })
